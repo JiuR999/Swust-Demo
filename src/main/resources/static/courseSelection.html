@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:v-bind="http://www.w3.org/1999/xhtml" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <title>Course-Student list</title>
+  <script src="vue.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <div>
+    <select v-model="courseId">
+      <option value="0">全部课程</option>
+      <option v-for="course in courses" v-bind:value="course.id">{{course.name}}</option>
+    </select>
+    <button v-on:click="openEnrollDlg">增加选课学生</button>
+  </div>
+  <table border="1" width="100%">
+    <tr>
+      <th>Course Code</th>
+      <th>Course Name</th>
+      <th>College</th>
+      <th>Student No.</th>
+      <th>Student Name</th>
+      <th>操作</th>
+    </tr>
+    <template v-for="cs in coursesWidthStudents">
+      <tr v-for="student in cs.students">
+        <td>{{cs.code}}</td>
+        <td>{{cs.name}}</td>
+        <td>{{cs.collegeName}}</td>
+        <td>{{student.no}}</td>
+        <td>{{student.firstname + ' ' + student.lastname}}</td>
+        <td>
+          <button v-on:click="removeCourseStudents(cs.id,student.id)">移除选课</button>
+        </td>
+      </tr>
+    </template>
+  </table>
+
+  <!-- 增加选课对话框 -->
+  <dialog ref="dialog">
+    <h3 align="center">增加选课学生</h3>
+    <select multiple v-model="studentIds" style="flex:1 1 auto;">
+      <option v-for="candidate in candidates" v-bind:value="candidate.id">
+        {{candidate.firstname +' ' + candidate.lastname}}
+      </option>
+    </select>
+    <div class="action">
+      <button v-on:click="this.$refs.dialog.close();">Cancel</button>
+      <button v-bind:disabled="studentIds.length === 0" v-on:click="addCourseStudents">Save</button>
+    </div>
+  </dialog>
+</div>
+
+<script>
+  const app = {
+    data() {
+      return {
+        coursesWidthStudents: [], // 选课数据 - 在此其实是课程对象列表（每个课程内嵌了students对象
+        courseId: 0, // 选中的课程 0-全部
+        courses: [], // 所有的课程 - 该数据用在课程下拉列表控件
+        enrollDlg:false, // 选课对话框
+        candidates:[], //候选学生
+        studentIds:[] // 选课时选中的学生ID列表
+      }
+    },
+// Vue应用对象的生命周期函数之一
+    mounted() {
+      this.loadCourses();
+// 读取选课情况
+      this.loadCourseStudents();
+    },
+    methods: {
+      /** 读取指定/全部课程选课情况 */
+      loadCourseStudents() {
+        axios.get('/course-student/course-student?courseId='+ this.courseId).then(res=>{
+          this.coursesWidthStudents = res.data.data;
+        }).catch(err=>{
+          console.error(err);
+        });
+      },
+      /** 从后端读取所有课程信息*/
+      loadCourses() {
+        axios.get('/course/getAll').then(res=>{
+        // 把返回结果赋值给data中的courses
+          this.courses = res.data.data;
+        }).catch(err=>{
+          console.error(err);
+        });
+      },
+        /** 打开选课学生对话框 */
+        openEnrollDlg() {
+// 1. 读取候选学生
+            if (this.courseId == 0) {
+                alert('请选择目标课程！');
+            } else {
+                axios.get('/student/not-enrolled-student/' + this.courseId)
+                    .then(res=>{this.candidates = res.data.data;
+                // 2. 开启选课对话框
+                this.$refs.dialog.showModal();
+            }).catch(err => {
+                console.error(err);
+                alert('读取候选学生失败！')
+            });
+        }
+    },
+        /** 保存新增选课学生 */
+        addCourseStudents() {
+            axios.post('/course-student/course-student/' + this.courseId + '?studentIds=' + this.studentIds)
+                    .then(res=>{
+            this.loadCourseStudents();
+            this.studentIds = [];
+            this.$refs.dialog.close();
+        }).catch(err => {
+      console.error(err);
+      alert('增加选课失败');
+  });
+  },
+  /** 移除指定课程下的某学生 */
+  removeCourseStudents(courseId,studentIds){
+      axios.delete('/course-student/course-student/'+ courseId + '?studentIds=' + studentIds)
+              .then(res=>{
+      this.loadCourseStudents();
+  }).catch(err=>{
+      console.error(err);
+  });
+  }
+    },
+
+    watch:{
+      /** 当选择课程变化时， 重新读取选课数据 */
+      courseId(value) {
+        this.loadCourseStudents();
+      },
+      enrollDlg(value){
+        if(value === false){
+          this.$refs.dialog.close();
+        } else {
+          this.$refs.dialog.showModal();
+        }
+      }
+    }
+  }
+  // 建立Vue App对象，并装载到html元素上
+  Vue.createApp(app).mount('#app');
+</script>
+</body>
+</html>

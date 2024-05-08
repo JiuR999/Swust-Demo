@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.swust.springdemo.mapper.StudentMapper">
+
+
+    <insert id="add">
+        insert into student(id, no, firstname, lastname, gender, birthday, email)
+        values(#{id}, #{no}, #{firstname}, #{lastname}, #{gender}, #{birthday}, #{email})
+    </insert>
+    <update id="update">
+        update student set no = #{no}, firstname = #{firstname},
+                           lastname = #{lastname}, gender = #{gender},birthday = #{birthday},
+                           email = #{email} where id = #{id}
+    </update>
+    <select id="listEnrolledStudents" resultType="cn.swust.springdemo.pojo.Student">
+        select * from student
+        where student.id NOT IN
+        (select student_id from course_student
+                           where course_id = #{courseId})
+    </select>
+
+    <sql id="params">
+
+    </sql>
+</mapper>

@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    password: zx200387
+    username: root
+    url: jdbc:mysql://localhost:3306/jee
+  sql:
+    init:
+      platform: mysql
+      schema-locations: schema.sql
+      data-locations: data.sql
+      mode: never
+  h2:
+    console:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:/mapper/*.xml
+

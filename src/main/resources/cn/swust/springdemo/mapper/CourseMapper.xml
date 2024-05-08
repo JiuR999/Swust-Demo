@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.swust.springdemo.mapper.CourseMapper">
+
+    <select id="list" resultType="cn.swust.springdemo.pojo.vo.CourseVO">
+        select c1.id,c1.code,c1.name,c2.college_name from course c1 left join  college c2
+        on c1.college_id = c2.id
+        <where>
+            <if test="id != null">c1.id = #{id}</if>
+        </where>
+    </select>
+</mapper>

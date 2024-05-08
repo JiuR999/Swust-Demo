@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <script src="vue.js"></script>
+  <title>学生选课系统</title>
+</head>
+<body>
+<div id="app" class="header">
+  <h2 class="site-title">
+    <span class="logo">&sect;&prop;</span><span>学生选课管理系统</span>
+    <img width="160px" height="160px"
+         style="float: right"
+         src="img/zx.png">
+  </h2>
+  <nav>
+    <ul>
+      <li v-for="(item,index) in menus">
+      <a  target="content-frame"
+              v-bind:href="item.href"
+          v-bind:key="item.href"
+          @click="active=index"
+          :class="{'active':index===active}">{{item.text}}</a>
+      </li>
+    </ul>
+  </nav>
+</div>
+<iframe class="main" name="content-frame" src="home.html" width="100%" frameborder="0"></iframe>
+<div class="footer">
+
+  <p>&copy Copyright JEE SWUST.</p>
+</div>
+<script>
+  const app = {
+
+    data() {
+      return {
+        active:0,
+        msg:"hello",
+        menus:[
+          {text:"首页",href:"home.html"},
+          {text:"学院管理",href:"college.html"},
+          {text:"课程管理",href:"course.html"},
+          {text:"学生管理",href:"/student"},
+          {text:"选课管理",href:"/courseSelection.html"}
+        ],
+        tableData: [{
+          date: '2016-05-02',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        }, {
+          date: '2016-05-04',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1517 弄'
+        }, {
+          date: '2016-05-01',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1519 弄'
+        }, {
+          date: '2016-05-03',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1516 弄'
+        }]
+      }
+    }
+  };
+  Vue.createApp(app).mount('#app');
+</script>
+</body>
+<style>
+  body {
+    height: calc(100vh);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin:0;
+  }
+  .site-title{
+    background-color: #000066;
+    color: white;
+    margin: 0;
+    padding: 10px;
+  }
+  .logo{
+    color: orange;
+    border: solid 2px orange;
+    border-radius:5px;
+    padding: 2px;
+    margin-right: 12px;
+  }
+  .main{
+    flex-grow: 1;
+    border: 0;
+  }
+  .footer{
+    border-top:solid 1px gray;
+    font-size: 10px;
+    padding: 6px;
+  }
+  nav{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: solid 2px gray;
+    padding: 2px;
+  }
+  ul{
+    padding: 12px;
+    margin: 0;
+  }
+  nav li{
+    display: inline-block;
+    justify-content: space-between;
+    margin: auto 6px;
+  }
+  nav a:hover{
+    background-color: blue;
+    color: white;
+    font-weight: bold;
+  }
+  a{
+    text-decoration: none;
+  }
+  nav .active{
+    border-bottom: solid 2px purple;
+    font-weight: bold;
+  }
+</style>
+</html>

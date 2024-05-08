@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="css/dialog.css">
+</head>
+<body>
+<div id="app">
+    <h1>学院信息</h1>
+    <button class="button" v-on:click="preAdd">
+        <?xml version="1.0" encoding="UTF-8"?>
+        <svg width="24" height="24" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M24.0605 10L24.0239 38" stroke="#5b84b4" stroke-width="4" stroke-linecap="round"
+                  stroke-linejoin="round"/>
+            <path d="M10 24L38 24" stroke="#5b84b4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="lable">新增学院</span>
+    </button>
+
+    <table class="stu_table" border="1" width="70%">
+        <tr>
+            <th>#</th>
+            <th>学院编号</th>
+            <th>学院名称</th>
+            <th>操作</th>
+        </tr>
+        <tr v-for="(college,index) in collegeList">
+            <th>{{index}}</th>
+            <td> {{college.id}}</td>
+            <td> {{college.collegeName}}</td>
+            <td>
+                <div id="opration">
+                    <button id="del2" @click="confirmDel(college.id)">删除</button>
+                    <button id="update" @click="preEdit(index)">修改</button>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <dialog ref="dialog">
+        <form class="form">
+            <p class="title">{{editing?"修改":"增加"}}学院 </p>
+            <p class="message">请输入学院信息</p>
+
+            <label>
+                <input required="" placeholder="" type="text" class="input" v-model="editCollege.code">
+                <span>学院代码</span>
+            </label>
+
+            <label>
+                <input required="" placeholder="" type="text" class="input" v-model="editCollege.collegeName">
+                <span>学院名称</span>
+            </label>
+
+            <div class="action">
+                <button v-on:click="this.$refs.dialog.close()" class="submit">取消</button>
+                <button v-if="editing" @click="updateCourse(editCollege.id)" class="submit">更新</button>
+                <button v-else @click="addColleges" class="submit">保存</button>
+            </div>
+        </form>
+    </dialog>
+</div>
+<script src="vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    const app = {
+        data() {
+            return {
+                editing: false,
+                collegeId:"",
+                collegeList: [],
+                colleges:[],
+                editCollege: {
+                    id: '',
+                    code: '',
+                    name: '',
+                    collegeName: ''
+                }
+            }
+        },
+        methods: {
+            confirmDel(id) {
+                axios.delete("college/delete/" + id).then(res => {
+                    alert("删除成功!")
+                    this.loadColleges()
+                }).catch(err => {
+                    alert("删除失败，请重试")
+                })
+            },
+            preEdit(index) {
+                this.editing = true;
+                Object.assign(this.editCollege, this.collegeList[index]);
+                this.$refs.dialog.showModal();
+            },
+            updateCourse(id) {
+                axios.post("/college/update/" + id,this.editCollege).then(res => {
+                    this.loadCourse();
+                    this.editing = false;
+                    this.$refs.dialog.close();
+                }).catch(err => {
+                    alert("更新失败，请重试!")
+                })
+            },
+            preAdd() {
+                this.editing = false;
+                this.editCollege = {id: '', name: ''}
+                this.$refs.dialog.showModal();
+            },
+            loadColleges(){
+                axios.get("/college/list").then(res=>{
+                    this.collegeList = res.data.data;
+                })
+            },
+            addColleges() {
+                axios.post('/college', this.editCollege)
+                    .then(res => {
+
+                        if (res.data.code !== 200 ) {  // 返回了错误信号
+                            alert(res.data.message.join('，'));
+                        } else {
+                            // 成功返回，直接重新读取课程列表
+                            alert("hhhh");
+                            this.loadColleges(); //新课程添加成功后重新查询课程列表并刷新界面
+                            this.$refs.dialog.close();  // 关闭单对话框
+                        }
+                    }).catch(err => {
+                    console.log(err)
+                    alert("请求异常，请重试!")
+                    this.$refs.dialog.close();
+                })
+            }
+        },
+        mounted() {
+            this.loadColleges();
+        }
+    }
+    Vue.createApp(app).mount("#app");
+
+</script>
+</body>
+<style>
+
+    @keyframes pulse {
+        from {
+            transform: scale(0.9);
+            opacity: 1;
+        }
+
+        to {
+            transform: scale(1.8);
+            opacity: 0;
+        }
+    }
+
+    #opration {
+        text-align: center;
+    }
+
+    .button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 6px 12px;
+        gap: 8px;
+        height: 36px;
+        width: 140px;
+        border: none;
+        background: #5e41de33;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    .lable {
+        line-height: 20px;
+        font-size: 17px;
+        color: #5D41DE;
+        font-family: sans-serif;
+        letter-spacing: 1px;
+    }
+
+    .button:hover {
+        background: #5e41de4d;
+    }
+
+    .button:hover .svg-icon {
+        animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    table {
+
+        border-collapse: collapse; /* 合并边框 */
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border-radius: 16px;
+        border: 1px solid #545050; /* 添加边框 */
+        padding: 6px; /* 添加内边距 */
+        text-align: center; /* 居中对齐 */
+    }
+
+    th {
+        background-color: #f2f2f2; /* 设置背景颜色 */
+        color: #695d5d; /* 设置字体颜色 */
+    }
+
+</style>
+</html>

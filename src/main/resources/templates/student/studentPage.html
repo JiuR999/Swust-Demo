@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<table class="stu_table" border="1" width="70%">
+  <tr>
+    <th>Property</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <th>No.</th>
+    <td th:text="${student.no}"></td>
+  </tr>
+  <tr>
+    <th>FirstName</th>
+    <td th:text="${student.firstname}"></td>
+  </tr>
+  <tr>
+    <th>LastName</th>
+    <td th:text="${student.lastname}"></td>
+  </tr>
+  <tr>
+    <th>Gender</th>
+    <td th:text="${student.gender}"></td>
+  </tr>
+  <tr>
+    <th>Birthday</th>
+    <td th:text="${student.birthday}"></td>
+  </tr>
+</table>
+</body>
+</html>

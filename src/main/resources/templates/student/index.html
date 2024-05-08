@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../../css/dialog.css">
+</head>
+<body>
+<div id="app">
+    <h1>学生信息</h1>
+    <button class="add-student" @click="preAdd">新增学生</button>
+    <table class="stu_table" border="1" width="70%">
+        <tr>
+            <th>#</th>
+            <th>Id</th>
+            <th>No.</th>
+            <th>FirstName</th>
+            <th>LastName</th>
+            <th>Gender</th>
+            <th>Birthday</th>
+            <th>Operation</th>
+        </tr>
+        <tr v-for="(s,iterStat) in studentList">
+            <td>{{iterStat}}</td>
+            <td>{{s.id}}</td>
+            <td>{{s.no}}</td>
+            <td>{{s.firstname}}</td>
+            <td>{{s.lastname}}</td>
+            <td>{{s.gender}}</td>
+            <td>{{s.birthday}}</td>
+                        <td>
+<!--                            <a th:href="'/student/view?'+'id='+ {{s.id}}">查看</a>-->
+                            <button id="del2" @click="confirmDel(s.id)">删除</button>
+                            <button @click="preEdit(iterStat)">修改</button>
+                        </td>
+        </tr>
+        <!--        <tr th:each="s,iterStat: ${students}" th:class="${iterStat.odd}?'odd'">-->
+        <!--            <td th:text="${iterStat.count}"></td>-->
+        <!--            <td th:text="${s.id}"></td>-->
+        <!--            <td th:text="${s.no}"></td>-->
+        <!--            <td th:text="${s.firstname}"></td>-->
+        <!--            <td th:text="${s.lastname}"></td>-->
+        <!--            <td th:text="${s.gender}"></td>-->
+        <!--            <td th:text="${s.birthday}"></td>-->
+        <!--            <td>-->
+        <!--                <a th:href="@{/student/view(id=${s.id})}">查看</a>-->
+        <!--                <span id="del2" onclick="confirmDel(${s.id})">删除</span>-->
+        <!--                <a th:href="@{/student/add(id=${s.id})}">修改</a>-->
+        <!--            </td>-->
+        <!--        </tr>-->
+    </table>
+
+    <dialog ref="dialog">
+        <form class="form">
+            <p class="title">{{editing ? "修改" : "增加"}}学生信息 </p>
+            <p class="message">请输入需要{{editing ? "修改" : "增加"}}的学生信息</p>
+
+            <label>
+                <input required="" placeholder="" type="text" class="input" v-model="editStudent.no">
+                <span>学号</span>
+            </label>
+
+            <label>
+                <input required="" placeholder="" type="text" class="input" v-model="editStudent.firstname">
+                <span>姓</span>
+            </label>
+            <label>
+                <input required="" placeholder="" type="text" class="input" v-model="editStudent.lastname">
+                <span>名</span>
+            </label>
+            <label id="gender">
+                <span>性别</span>
+                <select id="group" v-model="editStudent.gender">
+                    <option value="M">男</option>
+                    <option value="F">女</option>
+                </select>
+            </label>
+            <label>
+                <input required="" placeholder="" type="date" class="input" v-model="editStudent.birthday">
+                <span>出生日期</span>
+            </label>
+            <label>
+                <input required="" placeholder="" type="email" class="input" v-model="editStudent.email">
+                <span>邮箱</span>
+            </label>
+            <div class="action">
+                <button v-on:click="this.$refs.dialog.close()" class="submit">取消</button>
+                <button v-if="editing" @click="updateStudent(editStudent.id)" class="submit">更新</button>
+                <button v-else v-on:click="addStudent" class="submit">保存</button>
+            </div>
+        </form>
+    </dialog>
+</div>
+
+</body>
+<script src="../../vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    const app = {
+        data() {
+            return {
+                editing: "false",
+                studentList: [],
+                editStudent: {
+                    id:"",
+                    no: "",
+                    firstname: "",
+                    lastname: "",
+                    gender: "",
+                    birthday: "",
+                    email: "",
+                }
+            }
+        },
+        mounted() {
+            this.loadStudent();
+        },
+        methods: {
+            confirmDel(id) {
+                axios.delete("student/delete/" + id).then(res => {
+                    alert("删除成功!")
+                    this.loadStudent()
+                }).catch(err => {
+                    alert("删除失败，请重试")
+                })
+            },
+            preEdit(index) {
+                this.editing = true;
+                Object.assign(this.editStudent, this.studentList[index]);
+                this.$refs.dialog.showModal();
+            },
+            updateStudent() {
+
+                axios.post("/student/update/",this.editStudent).then(res => {
+                    this.loadStudent();
+                    this.editing = false;
+                    this.$refs.dialog.close();
+                }).catch(err => {
+                    alert("更新失败，请重试!")
+                })
+            },
+            loadStudent() {
+                axios.get("/student/getAll")
+                    .then(res => {
+                        this.studentList = res.data.data
+                    })
+            },
+            preAdd() {
+                this.editing = false;
+                this.editStudent = {
+                    id:"",
+                    no: "",
+                    firstname: "",
+                    lastname: "",
+                    gender: "",
+                    birthday: "",
+                    email: "",
+                };
+                this.$refs.dialog.showModal();
+            },
+            addStudent() {
+                axios.post('/student/add', this.editStudent)
+                    .then(res => {
+                        if (res.data.failure) {  // 返回了错误信号
+                            alert(res.data.message.join('，'));
+                        } else {
+                            // 成功返回，直接重新读取课程列表
+                            this.loadStudent(); //新课程添加成功后重新查询课程列表并刷新界面
+                            this.$refs.dialog.close();  // 关闭单对话框
+                        }
+
+                    }).catch(err => {
+                    console.log(err)
+                    alert("请求异常，请重试!")
+                    this.$refs.dialog.close();
+                })
+            }
+        }
+    }
+    Vue.createApp(app).mount('#app');
+</script>
+
+<style>
+    select {
+        width: 160px;
+        border-radius: 60px;
+    }
+    #gender {
+        display: flex;
+        justify-content: space-between;
+    }
+    .add-student {
+        border-radius: 100px;
+        padding: 12.5px 30px;
+        border: 0;
+        background-color: #2ba8fb;
+        color: #ffffff;
+        font-weight: Bold;
+        transition: all 0.5s;
+        -webkit-transition: all 0.5s;;
+    }
+
+    table .odd {
+        background-color: lightgray;
+    }
+
+    div {
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .stu_table {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table {
+        border-collapse: collapse; /* 合并边框 */
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid black; /* 添加边框 */
+        padding: 6px; /* 添加内边距 */
+        text-align: center; /* 居中对齐 */
+    }
+
+    th {
+        background-color: #f2f2f2; /* 设置背景颜色 */
+        color: #000; /* 设置字体颜色 */
+    }
+</style>
+</html>
